@@ -1,10 +1,15 @@
 
 import ReactDOM from '../src/react-dom';
+import lazy from 'jasmine-lazy';
 
 describe('ReactDOM', () => {
   describe('render', () => {
-    it('renders the specified element onto the page', () => {
-      expect(true).toEqual(true);
+    lazy('element', () => null);
+    lazy('container', () => null);
+
+    it('accepts and element and container and returns null', () => {
+      expect(ReactDOM.render(element, container)).toEqual(null);
     });
   });
 });
+

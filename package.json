@@ -11,6 +11,7 @@
     "@babel/preset-env": "^7.5.5",
     "babel-jest": "^24.9.0",
     "babel-loader": "^8.0.6",
+    "jasmine-lazy": "^0.2.1",
     "jest": "^24.9.0",
     "jest-puppeteer": "^4.3.0",
     "puppeteer": "^1.19.0",
