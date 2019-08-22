@@ -2,7 +2,9 @@
 import ReactDOM from '../src/react-dom';
 
 describe('ReactDOM', () => {
-  it('is good', () => {
-    expect(true).toEqual(true);
+  describe('render', () => {
+    it('renders the specified element onto the page', () => {
+      expect(true).toEqual(true);
+    });
   });
 });
