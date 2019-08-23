@@ -1,36 +1,45 @@
 
 
+const ATTRIBUTE_MAP = new Map(
+  [
+    ['className', 'class']
+  ]
+);
+
+function applyAttributes(node, props) {
+  Object.keys(props).forEach(key => {
+    if(key === 'children') return;
+
+    node.setAttribute(
+      ATTRIBUTE_MAP.get(key) || key, props[key]);
+  });
+}
+
+function renderChildren(node, children) {
+  children.forEach(child => {
+    if(Object.prototype.toString.call(child) 
+      === '[object String]') {
+
+      node.innerHTML += child;
+    } else {
+      node.appendChild(renderElement(child));
+    }
+  });
+}
+
 function renderElement(element) {
   if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
     return renderElement(element.type(element.props));
+  } else {
+    const root = document.createElement(element.type);
+
+    applyAttributes(root, element.props);
+    renderChildren(root, element.props.children);
+
+    return root;
   }
-
-  const root = document.createElement(element.type);
-
-  element.props.children.forEach(child => {
-    if(Object.prototype.toString.call(child) === '[object String]') {
-      root.innerHTML += child;
-    } else {
-      root.appendChild(renderElement(child));
-    }
-  });
-
-  const attributeMap = new Map(
-    [
-      ['className', 'class']
-    ]
-  );
-
-  Object.keys(element.props).forEach(key => {
-    if(key === 'children') return;
-
-    root.setAttribute(
-      attributeMap.get(key) || key, element.props[key]);
-  });
-
-  return root;
 }
 
 const ReactDOM = {
