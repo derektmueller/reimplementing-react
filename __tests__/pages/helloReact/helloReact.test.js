@@ -1,9 +1,13 @@
-describe('Google', () => {
+const path = require("path");
+
+describe('helloReact', () => {
   beforeAll(async () => {
-    await page.goto('https://google.com')
+    const url = 
+      `file://${path.resolve(__dirname, './helloReact.html')}`;
+    await page.goto(url)
   })
 
-  it('should display "google" text on page', async () => {
-    await expect(page).toMatch('google')
+  it('displays page rendered by React', async () => {
+    await expect(page).toMatch('hello react')
   })
 })
