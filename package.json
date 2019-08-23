@@ -17,6 +17,7 @@
   },
   "scripts": {
     "test": "jest",
+    "test:features": "jest --config=./__tests__/features/jest.config.js",
     "build": "webpack"
   },
   "author": "",

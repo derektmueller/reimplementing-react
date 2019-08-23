@@ -4,11 +4,105 @@ import lazy from 'jasmine-lazy';
 
 describe('ReactDOM', () => {
   describe('render', () => {
-    lazy('element', () => null);
-    lazy('container', () => null);
+    describe('rendering a div by itself', () => {
+      lazy('element', () => ({
+        type: 'div',
+        props: {
+          children: []
+        }
+      }));
 
-    it('accepts and element and container and returns null', () => {
-      expect(ReactDOM.render(element, container)).toEqual(null);
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+      });
+
+      it('renders the element into the container', () => {
+        expect(
+          ReactDOM.render(
+            element, document.querySelector("#container")))
+          .toEqual(null);
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div></div></div>'
+        );
+      });
+    });
+
+    describe('rendering a div with text', () => {
+      lazy('element', () => ({
+        type: 'div',
+        props: {
+          children: ['test']
+        }
+      }));
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+      });
+
+      it('renders the element into the container', () => {
+        expect(
+          ReactDOM.render(
+            element, document.querySelector("#container")))
+          .toEqual(null);
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div>test</div></div>'
+        );
+      });
+    });
+
+    describe('rendering a div with multiple text children', () => {
+      lazy('element', () => ({
+        type: 'div',
+        props: {
+          children: ['test1', 'test2']
+        }
+      }));
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+      });
+
+      it('renders the element into the container', () => {
+        expect(
+          ReactDOM.render(
+            element, document.querySelector("#container")))
+          .toEqual(null);
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div>test1test2</div></div>'
+        );
+      });
+    });
+
+    describe('rendering nested html elements', () => {
+      lazy('element', () => ({
+        type: 'div',
+        props: {
+          children: [
+            {
+              type: 'div',
+              props: {children: ['test']}
+            }
+          ]
+        }
+      }));
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+      });
+
+      it('renders the element into the container', () => {
+        expect(
+          ReactDOM.render(
+            element, document.querySelector("#container")))
+          .toEqual(null);
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div><div>test</div></div></div>'
+        );
+      });
     });
   });
 });
