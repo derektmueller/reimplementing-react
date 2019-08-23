@@ -11,6 +11,19 @@ function renderElement(element) {
     }
   });
 
+  const attributeMap = new Map(
+    [
+      ['className', 'class']
+    ]
+  );
+
+  Object.keys(element.props).forEach(key => {
+    if(key === 'children') return;
+
+    root.setAttribute(
+      attributeMap.get(key) || key, element.props[key]);
+  });
+
   return root;
 }
 

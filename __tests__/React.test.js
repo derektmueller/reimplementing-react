@@ -14,6 +14,23 @@ describe('React', () => {
             props: {children: []}
           });
       });
+
+    });
+
+    describe('when there are props', () => {
+      lazy('type', () => 'div');
+      lazy('expectedProps', () => ({
+        id: 'test-id',
+        className: 'some-class-name'
+      }));
+
+      it('adds the props to the element', () => {
+        expect(React.createElement(type, expectedProps))
+          .toEqual({
+            type: 'div',
+            props: {children: [], ...expectedProps}
+          });
+      });
     });
 
     describe('when there are children', () => {

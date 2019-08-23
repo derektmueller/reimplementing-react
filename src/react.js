@@ -14,7 +14,8 @@ export default {
           } else {
             return child;
           }
-        })
+        }),
+        ...props
       }
     }
   }
