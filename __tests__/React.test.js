@@ -14,7 +14,23 @@ describe('React', () => {
             props: {children: []}
           });
       });
+    });
 
+    describe('when the type is a functional component', () => {
+      lazy('type', () => () => {
+        return {
+          type: 'div',
+          props: {children: []}
+        }
+      });
+
+      it('returns an element of the given type', () => {
+        expect(React.createElement(type))
+          .toEqual({
+            type: expect.any(Function),
+            props: {children: []}
+          });
+      });
     });
 
     describe('when there are props', () => {

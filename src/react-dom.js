@@ -1,6 +1,12 @@
 
 
 function renderElement(element) {
+  if(Object.prototype.toString.call(element.type) 
+    === '[object Function]') {
+
+    return renderElement(element.type(element.props));
+  }
+
   const root = document.createElement(element.type);
 
   element.props.children.forEach(child => {
