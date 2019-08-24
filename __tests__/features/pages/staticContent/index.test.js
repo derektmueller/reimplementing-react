@@ -8,7 +8,6 @@ describe('static content', () => {
   })
 
   it('displays page rendered by React', async () => {
-    await page.waitFor(30000);
     await expect(page).toMatch('list header')
     await expect(page).toMatch('item a')
     await expect(page).toMatch('item b')
