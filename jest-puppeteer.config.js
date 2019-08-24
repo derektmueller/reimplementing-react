@@ -5,7 +5,7 @@ module.exports = {
   },
   launch: {
     dumpio: true,
-    headless: true,
+    headless: false,
   },
   browserContext: 'default',
 }
