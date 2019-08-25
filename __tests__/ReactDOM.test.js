@@ -31,6 +31,63 @@ const renderingClassComponents = () => {
     });
   });
 
+  describe('state', () => {
+    lazy('args', () => ({text: updatedText}));
+    lazy('buttonId', () => 'some-button-id');
+    lazy('originalText', () => 'original-text');
+    lazy('updatedText', () => 'updated-text');
+    lazy('element', () => {
+      return React.createElement(class extends React.Component {
+        constructor(props) {
+          super(props);
+
+          this.state = {
+            text: originalText
+          };
+        }
+
+        render() {
+          return React.createElement('button', {
+            onClick: () => {
+              this.setState(args);
+            },
+            id: buttonId,
+          }, [originalText]);
+        }
+      });
+    });
+
+    beforeEach(() => {
+      jest.spyOn(React.Component.prototype, 'setState');
+      document.body.innerHTML = '<div id="container"></div>';
+    });
+
+    it('setState can be called within class', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      document.querySelector(`#${buttonId}`).click();
+
+      expect(React.Component.prototype.setState)
+        .toHaveBeenCalledWith(args);
+    });
+
+    xit('setState triggers a re-render', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      expect(document.body.innerHTML).toMatch(originalText);
+
+      document.querySelector(`#${buttonId}`).click();
+
+      expect(document.body.innerHTML).toMatch(updatedText);
+    });
+  });
+
   describe(
     'passing props to class components', () => {
 

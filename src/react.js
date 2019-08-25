@@ -1,5 +1,9 @@
 
 class Component {
+  setState(args) {
+    this.state = {...this.state, ...args};
+  }
+
   constructor(props) {
     this.props = props;
   }
