@@ -1,18 +1,32 @@
 
 import React from './react';
 
-const ATTRIBUTE_MAP = new Map(
+const EVENT_HANDLER_MAP = new Map(
   [
-    ['className', 'class']
+    ['onClick', 'onclick'],
   ]
 );
 
+const ATTRIBUTE_MAP = new Map(
+  [
+    ['className', 'class'],
+    ['id', 'id'],
+  ]
+);
+
+function applyEventHandlers(node, props) {
+  Object.keys(props).forEach(key => {
+    if(!EVENT_HANDLER_MAP.get(key)) return;
+
+    node[EVENT_HANDLER_MAP.get(key)] = props[key];
+  });
+}
+
 function applyAttributes(node, props) {
   Object.keys(props).forEach(key => {
-    if(key === 'children') return;
+    if(!ATTRIBUTE_MAP.get(key)) return;
 
-    node.setAttribute(
-      ATTRIBUTE_MAP.get(key) || key, props[key]);
+    node.setAttribute(ATTRIBUTE_MAP.get(key), props[key]);
   });
 }
 
@@ -39,6 +53,7 @@ function renderElement(element) {
     const root = document.createElement(element.type);
 
     applyAttributes(root, element.props);
+    applyEventHandlers(root, element.props);
     renderChildren(root, element.props.children);
 
     return root;

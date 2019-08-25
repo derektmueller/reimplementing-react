@@ -13,19 +13,8 @@ describe('React', () => {
       expect((new React.Component(props)).props).toEqual(props);
     });
   });
+
   describe('createElement', () => {
-    describe('when the type is a tag name', () => {
-      lazy('type', () => 'div');
-
-      it('returns an element of the given type', () => {
-        expect(React.createElement(type))
-          .toEqual({
-            type: 'div',
-            props: {children: []}
-          });
-      });
-    });
-
     describe('when the type is a class component', () => {
       lazy('type', () => {
         return class extends React.Component {};
@@ -58,8 +47,17 @@ describe('React', () => {
     });
 
     describe('when type is a tag name', () => {
+      lazy('type', () => 'div');
+
+      it('returns an element of the given type', () => {
+        expect(React.createElement(type))
+          .toEqual({
+            type: 'div',
+            props: {children: []}
+          });
+      });
+
       describe('when there are props', () => {
-        lazy('type', () => 'div');
         lazy('expectedProps', () => ({
           id: 'test-id',
           className: 'some-class-name'
@@ -76,7 +74,6 @@ describe('React', () => {
 
       describe('when there are children', () => {
         describe('when the children are strings', () => {
-          lazy('type', () => 'div');
           lazy('children', () => ['test']);
 
           it('returns nested elements', () => {
@@ -91,7 +88,6 @@ describe('React', () => {
         });
 
         describe('when the children are elements', () => {
-          lazy('type', () => 'div');
           lazy('children', () => [
             {
               type: 'div',

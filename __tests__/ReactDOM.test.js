@@ -177,6 +177,27 @@ const renderingHtmlElements = () => {
     });
   });
 
+  describe('rendering an html element with a click handler', () => {
+    lazy('onClick', () => jest.fn());
+    lazy('id', () => 'some-id');
+    lazy('element', () => 
+      React.createElement('div', {id, onClick}));
+
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="container"></div>';
+    });
+
+    it('renders the element into the container', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      document.querySelector(`#${id}`).click();
+      expect(onClick).toHaveBeenCalled();
+    });
+  });
+
   describe('rendering an html element with text', () => {
     lazy('element', () => 
       React.createElement('div', null, ['test']));
