@@ -26,12 +26,12 @@ yarn test:features
 
 * rendering html elements
 * rendering functional components
+* rendering class components
 * passing children to functional components
 * passing props to html elements and functional components
 
 #### TODO
 
-* class components
 * state/DOM update
 * jsx transpiler
 
