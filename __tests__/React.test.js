@@ -3,6 +3,16 @@ import React from '../src/react';
 import lazy from 'jasmine-lazy';
 
 describe('React', () => {
+  describe('Component', () => {
+    lazy('props', () => ({
+      a: 1,
+      b: 2,
+    }));
+
+    it('receives props and saves them', () => {
+      expect((new React.Component(props)).props).toEqual(props);
+    });
+  });
   describe('createElement', () => {
     describe('when the type is a tag name', () => {
       lazy('type', () => 'div');
@@ -11,6 +21,20 @@ describe('React', () => {
         expect(React.createElement(type))
           .toEqual({
             type: 'div',
+            props: {children: []}
+          });
+      });
+    });
+
+    describe('when the type is a class component', () => {
+      lazy('type', () => {
+        return class extends React.Component {};
+      });
+
+      it('returns an element of the given type', () => {
+        expect(React.createElement(type))
+          .toEqual({
+            type,
             props: {children: []}
           });
       });
@@ -33,64 +57,66 @@ describe('React', () => {
       });
     });
 
-    describe('when there are props', () => {
-      lazy('type', () => 'div');
-      lazy('expectedProps', () => ({
-        id: 'test-id',
-        className: 'some-class-name'
-      }));
-
-      it('adds the props to the element', () => {
-        expect(React.createElement(type, expectedProps))
-          .toEqual({
-            type: 'div',
-            props: {children: [], ...expectedProps}
-          });
-      });
-    });
-
-    describe('when there are children', () => {
-      describe('when the children are strings', () => {
+    describe('when type is a tag name', () => {
+      describe('when there are props', () => {
         lazy('type', () => 'div');
-        lazy('children', () => ['test']);
+        lazy('expectedProps', () => ({
+          id: 'test-id',
+          className: 'some-class-name'
+        }));
 
-        it('returns nested elements', () => {
-          expect(React.createElement(type, null, children))
+        it('adds the props to the element', () => {
+          expect(React.createElement(type, expectedProps))
             .toEqual({
               type: 'div',
-              props: {
-                children: ['test']
-              }
+              props: {children: [], ...expectedProps}
             });
         });
       });
 
-      describe('when the children are elements', () => {
-        lazy('type', () => 'div');
-        lazy('children', () => [
-          {
-            type: 'div',
-            props: {
-              children: ['test']
-            }
-          }
-        ]);
+      describe('when there are children', () => {
+        describe('when the children are strings', () => {
+          lazy('type', () => 'div');
+          lazy('children', () => ['test']);
 
-        it('returns nested elements', () => {
-          expect(React.createElement(type, null, children))
-            .toEqual({
+          it('returns nested elements', () => {
+            expect(React.createElement(type, null, children))
+              .toEqual({
+                type: 'div',
+                props: {
+                  children: ['test']
+                }
+              });
+          });
+        });
+
+        describe('when the children are elements', () => {
+          lazy('type', () => 'div');
+          lazy('children', () => [
+            {
               type: 'div',
               props: {
-                children: [
-                  {
-                    type: 'div',
-                    props: {
-                      children: ['test']
-                    }
-                  }
-                ]
+                children: ['test']
               }
-            });
+            }
+          ]);
+
+          it('returns nested elements', () => {
+            expect(React.createElement(type, null, children))
+              .toEqual({
+                type: 'div',
+                props: {
+                  children: [
+                    {
+                      type: 'div',
+                      props: {
+                        children: ['test']
+                      }
+                    }
+                  ]
+                }
+              });
+          });
         });
       });
     });

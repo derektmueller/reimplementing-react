@@ -1,4 +1,5 @@
 
+import React from './react';
 
 const ATTRIBUTE_MAP = new Map(
   [
@@ -28,7 +29,9 @@ function renderChildren(node, children) {
 }
 
 function renderElement(element) {
-  if(Object.prototype.toString.call(element.type) 
+  if(element.type.prototype instanceof React.Component) {
+    return renderElement((new element.type(element.props)).render());
+  } else if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
     return renderElement(element.type(element.props));

@@ -1,22 +1,31 @@
 
-export default {
-  createElement: function createElement(
-      type, props, children=[]) {
+class Component {
+  constructor(props) {
+    this.props = props;
+  }
+}
 
-    return {
-      type,
-      props: {
-        children: children.map(child => {
-          if(Object.prototype.toString.call(child) 
-            === '[object String]') {
+function createElement(
+    type, props, children=[]) {
 
-            return child;
-          } else {
-            return child;
-          }
-        }),
-        ...props
-      }
+  return {
+    type,
+    props: {
+      children: children.map(child => {
+        if(Object.prototype.toString.call(child) 
+          === '[object String]') {
+
+          return child;
+        } else {
+          return child;
+        }
+      }),
+      ...props
     }
   }
+}
+
+export default {
+  Component,
+  createElement
 }

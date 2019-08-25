@@ -3,6 +3,63 @@ import ReactDOM from '../src/react-dom';
 import React from '../src/react';
 import lazy from 'jasmine-lazy';
 
+const renderingClassComponents = () => {
+  describe(
+    'rendering a class component that returns html', () => {
+
+    lazy('element', () => {
+      return React.createElement(class extends React.Component {
+        render() {
+          return React.createElement('div');
+        }
+      });
+    });
+
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="container"></div>';
+    });
+
+    it('renders the element returned by the component', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      expect(document.body.innerHTML).toEqual(
+        '<div id="container"><div></div></div>'
+      );
+    });
+  });
+
+  describe(
+    'passing props to class components', () => {
+
+    lazy('id', () => 'some-id');
+    lazy('element', () => {
+      return React.createElement(class extends React.Component {
+        render() {
+          return React.createElement('div', {id: this.props.id});
+        }
+      }, {id});
+    });
+
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="container"></div>';
+    });
+
+    it('renders the element returned by the component', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      expect(document.body.innerHTML).toEqual(
+        `<div id="container"><div id="${id}"></div></div>`
+      );
+    });
+  });
+};
+
 const renderingFunctionalComponents = () => {
   describe(
     'rendering a functional component that returns html', () => {
@@ -190,6 +247,7 @@ describe('ReactDOM', () => {
   describe('render', () => {
     renderingHtmlElements();
     renderingFunctionalComponents();
+    renderingClassComponents();
   });
 });
 
