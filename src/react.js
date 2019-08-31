@@ -1,4 +1,6 @@
 
+import {renderElement} from './rendering';
+
 class Component {
   constructor(props) {
     this.props = props;
@@ -6,6 +8,7 @@ class Component {
 
   setState(args) {
     this.state = {...this.state, ...args};
+    //renderElement(this);
   }
 }
 
