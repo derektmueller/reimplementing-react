@@ -52,7 +52,7 @@ const renderingClassComponents = () => {
               this.setState(args);
             },
             id: buttonId,
-          }, [originalText]);
+          }, [this.state.text]);
         }
       });
     });
@@ -74,7 +74,7 @@ const renderingClassComponents = () => {
         .toHaveBeenCalledWith(args);
     });
 
-    xit('setState triggers a re-render', () => {
+    it('setState triggers a re-render', () => {
       expect(
         ReactDOM.render(
           element, document.querySelector("#container")))
@@ -83,6 +83,9 @@ const renderingClassComponents = () => {
       expect(document.body.innerHTML).toMatch(originalText);
 
       document.querySelector(`#${buttonId}`).click();
+
+      expect(React.Component.prototype.setState)
+        .toHaveBeenCalledWith(args);
 
       expect(document.body.innerHTML).toMatch(updatedText);
     });

@@ -30,25 +30,33 @@ function applyAttributes(node, props) {
 }
 
 function renderChildren(node, children) {
-  children.forEach(child => {
+  children.forEach((child, i) => {
     if(Object.prototype.toString.call(child) 
       === '[object String]') {
 
       node.innerHTML += child;
     } else {
-      renderElement(child, node);
+      node.appendChild(renderElement(child, node, i));
     }
   });
 }
 
-export function renderElement(element, container) {
+export function renderElement(element, parentDomNode, childIndex=0) {
   if(element.type.prototype instanceof React.Component) {
-    renderElement(
-      (new element.type(element.props)).render(), container);
+    const componentInstance = new element.type(element.props);
+
+    componentInstance.parentDomNode = parentDomNode;
+
+    const node = renderElement(
+      componentInstance.render(), parentDomNode);
+
+    componentInstance.domNode = node;
+
+    return node;
   } else if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
-    renderElement(element.type(element.props), container);
+    return renderElement(element.type(element.props), parentDomNode);
   } else {
     const root = document.createElement(element.type);
 
@@ -56,9 +64,7 @@ export function renderElement(element, container) {
     applyEventHandlers(root, element.props);
     renderChildren(root, element.props.children);
 
-    container.appendChild(root);
+    return root;
   }
-
-  return null;
 }
 
