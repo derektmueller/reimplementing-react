@@ -29,9 +29,13 @@ yarn test:features
 * rendering class components
 * passing children to functional components
 * passing props to html elements and functional components
+* state change triggers DOM update
 
 #### TODO
 
-* state/DOM update
+* handle component type differences when performing updates
+* component unmount
+* lifecycle methods
+* use key attribute when performing DOM reconciliation
 * jsx transpiler
 
