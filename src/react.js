@@ -12,6 +12,7 @@ class Component {
     this.state = {...this.state, ...args};
     const html = renderElement(this.render(), this.parentDomNode);
     this.parentDomNode.replaceChild(html, this.domNode);
+    this.domNode = html;
   }
 }
 

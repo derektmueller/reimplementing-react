@@ -31,30 +31,35 @@ const renderingClassComponents = () => {
     });
   });
 
-  describe('state', () => {
-    lazy('args', () => ({text: updatedText}));
+  describe('setState', () => {
     lazy('buttonId', () => 'some-button-id');
-    lazy('originalText', () => 'original-text');
-    lazy('updatedText', () => 'updated-text');
-    lazy('element', () => {
-      return React.createElement(class extends React.Component {
+    lazy('component', () => {
+      return class extends React.Component {
         constructor(props) {
           super(props);
 
           this.state = {
-            text: originalText
+            counter: 0
           };
         }
 
         render() {
-          return React.createElement('button', {
-            onClick: () => {
-              this.setState(args);
-            },
-            id: buttonId,
-          }, [this.state.text]);
+          return React.createElement('div', null, [
+            React.createElement('button', {
+              onClick: () => {
+                this.setState({counter: this.state.counter + 1});
+              },
+              id: this.props.id,
+            }, [
+              `${this.props.label} Counter: ${this.state.counter}`,
+            ]),
+            ...this.props.children
+          ]);
         }
-      });
+      };
+    });
+    lazy('element', () => {
+      return React.createElement(component);
     });
 
     beforeEach(() => {
@@ -62,32 +67,75 @@ const renderingClassComponents = () => {
       document.body.innerHTML = '<div id="container"></div>';
     });
 
-    it('setState can be called within class', () => {
+    it('can be called within class', () => {
       expect(
         ReactDOM.render(
-          element, document.querySelector("#container")))
+          React.createElement(
+            component, {id: buttonId, label: 'Outer'}),
+          document.querySelector("#container")))
         .toEqual(null);
 
       document.querySelector(`#${buttonId}`).click();
 
       expect(React.Component.prototype.setState)
-        .toHaveBeenCalledWith(args);
+        .toHaveBeenCalledWith({counter: 1});
     });
 
-    it('setState triggers a re-render', () => {
+    it('triggers a re-render', () => {
       expect(
         ReactDOM.render(
-          element, document.querySelector("#container")))
+          React.createElement(
+            component, {id: buttonId, label: 'Outer'}),
+          document.querySelector("#container")))
         .toEqual(null);
 
-      expect(document.body.innerHTML).toMatch(originalText);
+      expect(document.body.innerHTML).toMatch(`Outer Counter: 0`);
 
       document.querySelector(`#${buttonId}`).click();
 
-      expect(React.Component.prototype.setState)
-        .toHaveBeenCalledWith(args);
+      expect(document.body.innerHTML).toMatch(`Outer Counter: 1`);
+    });
 
-      expect(document.body.innerHTML).toMatch(updatedText);
+    xdescribe('when there are nested class components', () => {
+      lazy('nestedComponentButtonId', () => 
+        'nested-component-button-id');
+      lazy('outerCounterLabel', () => 'Outer');
+      lazy('innerCounterLabel', () => 'Inner');
+
+      it('preserves descendant component instances', () => {
+        expect(
+          ReactDOM.render(
+            React.createElement(
+              component, 
+              {id: buttonId, label: outerCounterLabel},
+              [
+                React.createElement(
+                  component, 
+                  {id: nestedComponentButtonId, 
+                   label: innerCounterLabel}
+                )
+              ]
+            ),
+            document.querySelector("#container")))
+          .toEqual(null);
+
+        expect(document.body.innerHTML)
+          .toMatch(`${innerCounterLabel} Counter: 0`);
+
+        document.querySelector(`#${nestedComponentButtonId}`).click();
+
+        expect(document.body.innerHTML)
+          .toMatch(`${innerCounterLabel} Counter: 1`);
+        expect(document.body.innerHTML)
+          .toMatch(`${outerCounterLabel} Counter: 0`);
+
+        document.querySelector(`#${buttonId}`).click();
+
+        expect(document.body.innerHTML)
+          .toMatch(`${outerCounterLabel} Counter: 1`);
+        expect(document.body.innerHTML)
+          .toMatch(`${innerCounterLabel} Counter: 1`);
+      });
     });
   });
 
