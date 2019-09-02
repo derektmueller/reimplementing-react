@@ -3,6 +3,45 @@
 
 This project is a reimplementation of a subset of the React.js API built as a learning exercise.
 
+### Example Usage
+
+The example below generates a simple counter that can be incremented and decremented.
+
+[See example in CodePen](https://codepen.io/parenparen/pen/xxKXKPv?&editable=true&editors=0010)
+
+```
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      count: 0
+    }
+  }
+
+  render() {
+    return React.createElement(
+      'div', null, [
+        `Count: ${this.state.count}`,
+        React.createElement('button', {
+          onClick: () => { 
+            this.setState({count: this.state.count + 1}); 
+          }
+        }, ['+']),
+        React.createElement('button', {
+          onClick: () => { 
+            this.setState({count: this.state.count - 1}); 
+          }
+        }, ['-'])
+      ]);
+  }
+}
+
+ReactDOM.render(
+  React.createElement(Counter), 
+  document.querySelector('#container'));
+```
+
 ### Build
 
 ```
