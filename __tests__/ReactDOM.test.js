@@ -96,7 +96,7 @@ const renderingClassComponents = () => {
       expect(document.body.innerHTML).toMatch(`Outer Counter: 1`);
     });
 
-    xdescribe('when there are nested class components', () => {
+    describe('when there are nested class components', () => {
       lazy('nestedComponentButtonId', () => 
         'nested-component-button-id');
       lazy('outerCounterLabel', () => 'Outer');

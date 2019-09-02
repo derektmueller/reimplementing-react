@@ -54,11 +54,57 @@ class DOMComponent {
 
   update() {
     const oldDomNode = this.domNode;
-    const node = this.mount();
 
-    this.parentDomNode.replaceChild(node, oldDomNode);
+    const root = document.createElement(this.element.type);
 
-    return node;
+    applyAttributes(root, this.element.props);
+    applyEventHandlers(root, this.element.props);
+
+    let i = 0, 
+        j = 0;
+    while(j < this.element.props.children.length &&
+          i < this.renderedElements.length) {
+      if(Object.prototype.toString.call(
+          this.element.props.children[j]) === '[object String]') {
+
+        this.appendHtml(
+          root, this.element.props.children[j]);
+      } else if(this.renderedElements[i].type 
+         === this.element.props.children[j].type) {
+
+        this.renderedElements[i].props = 
+          this.element.props.children[j].props;
+        this.appendHtml(
+          root, this.renderedComponents[i].update());
+      } else {
+//        const instance = instantiateComponent({
+//          element: this.element.props.children[j],
+//          parentDomNode: root
+//        });
+//        this.appendHtml(root, instance.mount());
+      }
+
+      i++;
+      j++;
+    }
+
+    this.parentDomNode.replaceChild(root, oldDomNode);
+    this.domNode = root;
+    this.renderedComponents.forEach((component) => {
+      component.parentDomNode = root;
+    });
+
+    return root;
+  }
+
+  appendHtml(root, nodeOrString) {
+    if(Object.prototype.toString.call(nodeOrString) 
+      === '[object String]') {
+
+      root.innerHTML += nodeOrString;
+    } else {
+      root.appendChild(nodeOrString);
+    }
   }
 
   mount() {
@@ -78,13 +124,7 @@ class DOMComponent {
 
     this.renderedComponents.forEach((component) => {
       const nodeOrString = component.mount();
-      if(Object.prototype.toString.call(nodeOrString) 
-        === '[object String]') {
-
-        root.innerHTML += nodeOrString;
-      } else {
-        root.appendChild(nodeOrString);
-      }
+      this.appendHtml(root, nodeOrString);
     });
 
     this.domNode = root;
@@ -131,14 +171,14 @@ class ClassComponent {
     if(this.renderedElement.type === nextRender.type) {
       this.renderedComponent.element.props = 
           nextRender.props;
-      this.renderedComponent.update();
+      return this.renderedComponent.update();
     } else {
-      const html = renderElement(
-        nextRender, 
-        this.parentDomNode);
-      this.parentDomNode.replaceChild(
-        html, this.domNode);
-      this.domNode = html;
+//      const html = renderElement(
+//        nextRender, 
+//        this.parentDomNode);
+//      this.parentDomNode.replaceChild(
+//        html, this.domNode);
+//      this.domNode = html;
     }
   }
 }
