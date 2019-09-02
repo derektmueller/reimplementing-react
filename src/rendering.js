@@ -29,24 +29,9 @@ function applyAttributes(node, props) {
   });
 }
 
-
-class DOMComponent {
-  constructor(element) {
-    this.element = element;
-    this.renderedElements;
-    this.renderedComponents;
-  }
-
-  renderChildren(node, children) {
-    children.forEach((child) => {
-      if(Object.prototype.toString.call(child) 
-        === '[object String]') {
-
-        node.innerHTML += child;
-      } else {
-        node.appendChild(renderElement(child, node));
-      }
-    });
+class HTMLStringComponent {
+  constructor(string) {
+    this.string = string;
   }
 
   update() {
@@ -54,11 +39,55 @@ class DOMComponent {
   }
 
   mount() {
+    return this.string;
+  }
+}
+
+class DOMComponent {
+  constructor(element, parentDomNode) {
+    this.element = element;
+    this.renderedElements;
+    this.renderedComponents;
+    this.parentDomNode = parentDomNode;
+    this.domNode;
+  }
+
+  update() {
+    const oldDomNode = this.domNode;
+    const node = this.mount();
+
+    this.parentDomNode.replaceChild(node, oldDomNode);
+
+    return node;
+  }
+
+  mount() {
     const root = document.createElement(this.element.type);
+
+    this.renderedElements = this.element.props.children;
+    this.renderedComponents = 
+      this.renderedElements.map((child) => {
+        return instantiateComponent({
+          element: child,
+          parentDomNode: root
+        });
+      });
 
     applyAttributes(root, this.element.props);
     applyEventHandlers(root, this.element.props);
-    this.renderChildren(root, this.element.props.children);
+
+    this.renderedComponents.forEach((component) => {
+      const nodeOrString = component.mount();
+      if(Object.prototype.toString.call(nodeOrString) 
+        === '[object String]') {
+
+        root.innerHTML += nodeOrString;
+      } else {
+        root.appendChild(nodeOrString);
+      }
+    });
+
+    this.domNode = root;
 
     return root;
   }
@@ -99,9 +128,9 @@ class ClassComponent {
   update() {
     const nextRender = this.publicInstance.render();
 
-    if(false &&
-      this.renderedElement.type.prototype instanceof React.Component
-      && this.renderedElement.type === nextRender.type) {
+    if(this.renderedElement.type === nextRender.type) {
+      this.renderedComponent.element.props = 
+          nextRender.props;
       this.renderedComponent.update();
     } else {
       const html = renderElement(
@@ -138,18 +167,25 @@ class FunctionalComponent {
 }
 
 function instantiateComponent({element, parentDomNode}) {
-  if(element.type.prototype instanceof React.Component) {
+  if(Object.prototype.toString.call(element) 
+        === '[object String]') {
+    return (new HTMLStringComponent(element));
+  } else if(
+    element.type.prototype instanceof React.Component) {
+
     return (new ClassComponent(element, parentDomNode));
   } else if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
     return (new FunctionalComponent(element, parentDomNode));
   } else {
-    return (new DOMComponent(element));
+    return (new DOMComponent(element, parentDomNode));
   }
 }
 
 export function renderElement(element, parentDomNode) {
-  return instantiateComponent({element, parentDomNode}).mount();
+  return instantiateComponent({
+    element, parentDomNode
+  }).mount();
 }
 
