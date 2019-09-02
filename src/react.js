@@ -4,15 +4,12 @@ import {renderElement} from './rendering';
 class Component {
   constructor(props) {
     this.props = props;
-    this.parentDomNode = null;
-    this.domNode = 0;
+    this.privateInstance;
   }
 
   setState(args) {
     this.state = {...this.state, ...args};
-    const html = renderElement(this.render(), this.parentDomNode);
-    this.parentDomNode.replaceChild(html, this.domNode);
-    this.domNode = html;
+    this.privateInstance.update();
   }
 }
 

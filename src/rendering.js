@@ -41,30 +41,65 @@ function renderChildren(node, children) {
   });
 }
 
-export function renderElement(element, parentDomNode, childIndex=0) {
-  if(element.type.prototype instanceof React.Component) {
+class DOMComponent {
+  constructor(element) {
+    this.element = element;
+  }
+
+  mount() {
+    const root = document.createElement(this.element.type);
+
+    applyAttributes(root, this.element.props);
+    applyEventHandlers(root, this.element.props);
+    renderChildren(root, this.element.props.children);
+
+    return root;
+  }
+}
+
+class ClassComponent {
+  constructor(element, parentDomNode) {
+    this.element = element;
+    this.parentDomNode = parentDomNode;
+    this.publicInstance;
+    this.domNode;
+  }
+
+  mount() {
+    const element = this.element;
     const componentInstance = new element.type(element.props);
 
-    componentInstance.parentDomNode = parentDomNode;
+    this.publicInstance = componentInstance;
+    componentInstance.privateInstance = this;
 
     const node = renderElement(
-      componentInstance.render(), parentDomNode);
+      componentInstance.render(), this.parentDomNode);
 
-    componentInstance.domNode = node;
+    this.domNode = node;
 
     return node;
+  }
+
+  update() {
+    const html = renderElement(
+      this.publicInstance.render(), 
+      this.parentDomNode);
+    this.parentDomNode.replaceChild(
+      html, this.domNode);
+    this.domNode = html;
+  }
+}
+
+export function renderElement(element, parentDomNode) {
+  if(element.type.prototype instanceof React.Component) {
+    return (new ClassComponent(element, parentDomNode))
+      .mount();
   } else if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
     return renderElement(element.type(element.props), parentDomNode);
   } else {
-    const root = document.createElement(element.type);
-
-    applyAttributes(root, element.props);
-    applyEventHandlers(root, element.props);
-    renderChildren(root, element.props.children);
-
-    return root;
+    return (new DOMComponent(element)).mount();
   }
 }
 
