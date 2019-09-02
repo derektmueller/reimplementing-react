@@ -1,6 +1,4 @@
 
-import {renderElement} from './rendering';
-
 class Component {
   constructor(props) {
     this.props = props;

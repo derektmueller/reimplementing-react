@@ -29,21 +29,28 @@ function applyAttributes(node, props) {
   });
 }
 
-function renderChildren(node, children) {
-  children.forEach((child, i) => {
-    if(Object.prototype.toString.call(child) 
-      === '[object String]') {
-
-      node.innerHTML += child;
-    } else {
-      node.appendChild(renderElement(child, node, i));
-    }
-  });
-}
 
 class DOMComponent {
   constructor(element) {
     this.element = element;
+    this.renderedElements;
+    this.renderedComponents;
+  }
+
+  renderChildren(node, children) {
+    children.forEach((child) => {
+      if(Object.prototype.toString.call(child) 
+        === '[object String]') {
+
+        node.innerHTML += child;
+      } else {
+        node.appendChild(renderElement(child, node));
+      }
+    });
+  }
+
+  update() {
+    return this.mount();
   }
 
   mount() {
@@ -51,7 +58,7 @@ class DOMComponent {
 
     applyAttributes(root, this.element.props);
     applyEventHandlers(root, this.element.props);
-    renderChildren(root, this.element.props.children);
+    this.renderChildren(root, this.element.props.children);
 
     return root;
   }
@@ -63,6 +70,8 @@ class ClassComponent {
     this.parentDomNode = parentDomNode;
     this.publicInstance;
     this.domNode;
+    this.renderedElement;
+    this.renderedComponent;
   }
 
   mount() {
@@ -72,8 +81,15 @@ class ClassComponent {
     this.publicInstance = componentInstance;
     componentInstance.privateInstance = this;
 
-    const node = renderElement(
-      componentInstance.render(), this.parentDomNode);
+    const renderedElement = componentInstance.render();
+
+    this.renderedElement = renderedElement;
+    this.renderedComponent = instantiateComponent({
+      element: this.renderedElement, 
+      parentDomNode: this.parentDomNode
+    });
+
+    const node = this.renderedComponent.mount();
 
     this.domNode = node;
 
@@ -81,25 +97,59 @@ class ClassComponent {
   }
 
   update() {
-    const html = renderElement(
-      this.publicInstance.render(), 
-      this.parentDomNode);
-    this.parentDomNode.replaceChild(
-      html, this.domNode);
-    this.domNode = html;
+    const nextRender = this.publicInstance.render();
+
+    if(false &&
+      this.renderedElement.type.prototype instanceof React.Component
+      && this.renderedElement.type === nextRender.type) {
+      this.renderedComponent.update();
+    } else {
+      const html = renderElement(
+        nextRender, 
+        this.parentDomNode);
+      this.parentDomNode.replaceChild(
+        html, this.domNode);
+      this.domNode = html;
+    }
+  }
+}
+
+class FunctionalComponent {
+  constructor(element, parentDomNode) {
+    this.element = element;
+    this.parentDomNode = parentDomNode;
+    this.renderedElement;
+    this.renderedComponent;
+  }
+
+  update() {
+    return this.mount();
+  }
+
+  mount() {
+    this.renderedElement = this.element.type(this.element.props);
+    this.renderedComponent = instantiateComponent({
+      element: this.renderedElement,
+      parentDomNode: this.parentDomNode
+    });
+
+    return this.renderedComponent.mount();
+  }
+}
+
+function instantiateComponent({element, parentDomNode}) {
+  if(element.type.prototype instanceof React.Component) {
+    return (new ClassComponent(element, parentDomNode));
+  } else if(Object.prototype.toString.call(element.type) 
+    === '[object Function]') {
+
+    return (new FunctionalComponent(element, parentDomNode));
+  } else {
+    return (new DOMComponent(element));
   }
 }
 
 export function renderElement(element, parentDomNode) {
-  if(element.type.prototype instanceof React.Component) {
-    return (new ClassComponent(element, parentDomNode))
-      .mount();
-  } else if(Object.prototype.toString.call(element.type) 
-    === '[object Function]') {
-
-    return renderElement(element.type(element.props), parentDomNode);
-  } else {
-    return (new DOMComponent(element)).mount();
-  }
+  return instantiateComponent({element, parentDomNode}).mount();
 }
 
