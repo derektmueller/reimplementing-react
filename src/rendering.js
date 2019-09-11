@@ -44,17 +44,18 @@ class HTMLStringComponent {
 }
 
 class DOMComponent {
-  constructor(element, parentDomNode) {
+  constructor(element) {
     this.element = element;
     this.renderedElements;
     this.renderedComponents;
-    this.parentDomNode = parentDomNode;
     this.domNode;
+  }
+
+  unmount() {
   }
 
   update() {
     const oldDomNode = this.domNode;
-
     const root = document.createElement(this.element.type);
 
     applyAttributes(root, this.element.props);
@@ -78,8 +79,7 @@ class DOMComponent {
           root, this.renderedComponents[i].update());
       } else {
 //        const instance = instantiateComponent({
-//          element: this.element.props.children[j],
-//          parentDomNode: root
+//          element: this.element.props.children[j]
 //        });
 //        this.appendHtml(root, instance.mount());
       }
@@ -88,11 +88,9 @@ class DOMComponent {
       j++;
     }
 
-    this.parentDomNode.replaceChild(root, oldDomNode);
+    oldDomNode.parentNode.replaceChild(root, oldDomNode);
     this.domNode = root;
-    this.renderedComponents.forEach((component) => {
-      component.parentDomNode = root;
-    });
+    this.domNode.__reactInternalInstance = this;
 
     return root;
   }
@@ -114,8 +112,7 @@ class DOMComponent {
     this.renderedComponents = 
       this.renderedElements.map((child) => {
         return instantiateComponent({
-          element: child,
-          parentDomNode: root
+          element: child
         });
       });
 
@@ -134,13 +131,17 @@ class DOMComponent {
 }
 
 class ClassComponent {
-  constructor(element, parentDomNode) {
+  constructor(element) {
     this.element = element;
-    this.parentDomNode = parentDomNode;
     this.publicInstance;
     this.domNode;
     this.renderedElement;
     this.renderedComponent;
+  }
+
+  unmount() {
+    this.publicInstance.componentWillUnmount();
+    this.renderedComponent.unmount();
   }
 
   mount() {
@@ -154,13 +155,15 @@ class ClassComponent {
 
     this.renderedElement = renderedElement;
     this.renderedComponent = instantiateComponent({
-      element: this.renderedElement, 
-      parentDomNode: this.parentDomNode
+      element: this.renderedElement
     });
 
     const node = this.renderedComponent.mount();
 
     this.domNode = node;
+    this.domNode.__reactInternalInstance = this;
+
+    this.publicInstance.componentDidMount();
 
     return node;
   }
@@ -175,8 +178,8 @@ class ClassComponent {
     } else {
 //      const html = renderElement(
 //        nextRender, 
-//        this.parentDomNode);
-//      this.parentDomNode.replaceChild(
+//        );
+//      this.domNode.parentNode.replaceChild(
 //        html, this.domNode);
 //      this.domNode = html;
     }
@@ -184,9 +187,8 @@ class ClassComponent {
 }
 
 class FunctionalComponent {
-  constructor(element, parentDomNode) {
+  constructor(element) {
     this.element = element;
-    this.parentDomNode = parentDomNode;
     this.renderedElement;
     this.renderedComponent;
   }
@@ -198,34 +200,44 @@ class FunctionalComponent {
   mount() {
     this.renderedElement = this.element.type(this.element.props);
     this.renderedComponent = instantiateComponent({
-      element: this.renderedElement,
-      parentDomNode: this.parentDomNode
+      element: this.renderedElement
     });
 
     return this.renderedComponent.mount();
   }
 }
 
-function instantiateComponent({element, parentDomNode}) {
+function instantiateComponent({element}) {
   if(Object.prototype.toString.call(element) 
         === '[object String]') {
     return (new HTMLStringComponent(element));
   } else if(
     element.type.prototype instanceof React.Component) {
 
-    return (new ClassComponent(element, parentDomNode));
+    return (new ClassComponent(element));
   } else if(Object.prototype.toString.call(element.type) 
     === '[object Function]') {
 
-    return (new FunctionalComponent(element, parentDomNode));
+    return (new FunctionalComponent(element));
   } else {
-    return (new DOMComponent(element, parentDomNode));
+    return (new DOMComponent(element));
   }
 }
 
-export function renderElement(element, parentDomNode) {
-  return instantiateComponent({
-    element, parentDomNode
+function unmountTree(container) {
+  container.firstChild.__reactInternalInstance.unmount();
+  container.innerHTML = '';
+}
+
+export function renderElement(element, container) {
+  if(container.firstChild) {
+    unmountTree(container);
+  }
+
+  const component = instantiateComponent({
+    element
   }).mount();
+
+  container.appendChild(component, container);
 }
 

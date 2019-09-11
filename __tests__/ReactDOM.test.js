@@ -4,6 +4,72 @@ import React from '../src/react';
 import lazy from 'jasmine-lazy';
 
 const renderingClassComponents = () => {
+  describe('updating', () => {
+    describe('when the type does not match', () => {
+      lazy('oldComponent', () => {
+        return class extends React.Component {
+          render() {
+            return React.createElement('div', null, [
+              'old-component'
+            ]);
+          }
+        };
+      });
+      lazy('newComponent', () => {
+        return class extends React.Component {
+          render() {
+            return React.createElement('div', null, [
+              'new-component'
+            ]);
+          }
+        };
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          React.createElement(
+            oldComponent),
+          document.querySelector("#container"))
+      });
+
+      it('calls componentWillUnmount on the old component', () => {
+        spyOn(oldComponent.prototype, 'componentWillUnmount');
+
+        ReactDOM.render(
+          React.createElement(
+            newComponent),
+          document.querySelector("#container"));
+
+        expect(oldComponent.prototype.componentWillUnmount)
+          .toHaveBeenCalled();
+      });
+
+      it('calls componentDidMount on the new component', () => {
+        spyOn(newComponent.prototype, 'componentDidMount');
+
+        ReactDOM.render(
+          React.createElement(
+            newComponent),
+          document.querySelector("#container"));
+
+        expect(newComponent.prototype.componentDidMount)
+          .toHaveBeenCalled();
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          React.createElement(
+            newComponent),
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div>new-component</div></div>'
+        );
+      });
+    });
+  });
+
   describe(
     'rendering a class component that returns html', () => {
 
@@ -57,9 +123,6 @@ const renderingClassComponents = () => {
           ]);
         }
       };
-    });
-    lazy('element', () => {
-      return React.createElement(component);
     });
 
     beforeEach(() => {

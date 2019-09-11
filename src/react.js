@@ -5,6 +5,12 @@ class Component {
     this.privateInstance;
   }
 
+  componentWillUnmount() {
+  }
+
+  componentDidMount() {
+  }
+
   setState(args) {
     this.state = {...this.state, ...args};
     this.privateInstance.update();
