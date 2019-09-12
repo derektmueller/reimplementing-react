@@ -34,10 +34,6 @@ class HTMLStringComponent {
     this.string = string;
   }
 
-  update() {
-    return this.mount();
-  }
-
   mount() {
     return this.string;
   }
@@ -49,6 +45,10 @@ class DOMComponent {
     this.renderedElements;
     this.renderedComponents;
     this.domNode;
+  }
+
+  getHostNode() {
+    return this.domNode;
   }
 
   unmount() {
@@ -90,7 +90,6 @@ class DOMComponent {
 
     oldDomNode.parentNode.replaceChild(root, oldDomNode);
     this.domNode = root;
-    this.domNode.__reactInternalInstance = this;
 
     return root;
   }
@@ -134,9 +133,12 @@ class ClassComponent {
   constructor(element) {
     this.element = element;
     this.publicInstance;
-    this.domNode;
     this.renderedElement;
     this.renderedComponent;
+  }
+
+  getHostNode() {
+    return this.renderedComponent.getHostNode();
   }
 
   unmount() {
@@ -158,30 +160,44 @@ class ClassComponent {
       element: this.renderedElement
     });
 
+    this.publicInstance.componentWillMount();
+
     const node = this.renderedComponent.mount();
 
-    this.domNode = node;
-    this.domNode.__reactInternalInstance = this;
-
-    this.publicInstance.componentDidMount();
+    this.getHostNode().__reactInternalInstance = this;
 
     return node;
   }
 
-  update() {
+  update(nextElement=null) {
+    if(nextElement) {
+      this.publicInstance.props = nextElement.props;
+      //this.element = nextElement;
+    }
+
     const nextRender = this.publicInstance.render();
 
     if(this.renderedElement.type === nextRender.type) {
       this.renderedComponent.element.props = 
           nextRender.props;
-      return this.renderedComponent.update();
+      const domNode = this.renderedComponent.update();
+
+      this.publicInstance.componentWillUpdate();
+
+      return domNode;
     } else {
-//      const html = renderElement(
-//        nextRender, 
-//        );
-//      this.domNode.parentNode.replaceChild(
-//        html, this.domNode);
-//      this.domNode = html;
+      const prevNode = this.getHostNode();
+
+      this.renderedElement = nextRender;
+      this.renderedComponent = instantiateComponent({
+        element: this.renderedElement
+      });
+
+      const nextNode = this.renderedComponent.mount();
+
+      prevNode.parentNode.replaceChild(nextNode, prevNode);
+
+      return nextNode;
     }
   }
 }
@@ -191,10 +207,6 @@ class FunctionalComponent {
     this.element = element;
     this.renderedElement;
     this.renderedComponent;
-  }
-
-  update() {
-    return this.mount();
   }
 
   mount() {
@@ -230,14 +242,26 @@ function unmountTree(container) {
 }
 
 export function renderElement(element, container) {
+  let domNode;
   if(container.firstChild) {
-    unmountTree(container);
+    if(container.firstChild.__reactInternalInstance.element.type
+       === element.type) {
+
+      const component = container.firstChild.__reactInternalInstance;
+
+      domNode = component.update(element);
+    } else {
+      unmountTree(container);
+      domNode = instantiateComponent({
+        element
+      }).mount();
+    }
+  } else {
+    domNode = instantiateComponent({
+      element
+    }).mount();
   }
 
-  const component = instantiateComponent({
-    element
-  }).mount();
-
-  container.appendChild(component, container);
+  container.appendChild(domNode);
 }
 

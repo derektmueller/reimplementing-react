@@ -8,7 +8,10 @@ class Component {
   componentWillUnmount() {
   }
 
-  componentDidMount() {
+  componentWillMount() {
+  }
+
+  componentWillUpdate() {
   }
 
   setState(args) {
