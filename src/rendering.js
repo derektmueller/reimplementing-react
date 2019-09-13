@@ -80,10 +80,10 @@ class DOMComponent {
           this.renderedComponents[i]
             .update(this.element.props.children[j]));
       } else {
-//        const instance = instantiateComponent({
-//          element: this.element.props.children[j]
-//        });
-//        this.appendHtml(root, instance.mount());
+        const instance = instantiateComponent({
+          element: this.element.props.children[j]
+        });
+        this.appendHtml(root, instance.mount());
       }
 
       i++;
@@ -116,6 +116,8 @@ class DOMComponent {
     });
 
     this.domNode = root;
+
+    this.getHostNode().__reactInternalInstance = this;
 
     return root;
   }
@@ -180,9 +182,9 @@ class ClassComponent {
     const nextRender = this.publicInstance.render();
 
     if(this.renderedElement.type === nextRender.type) {
-      const domNode = this.renderedComponent.update(nextRender);
-
       this.publicInstance.componentWillUpdate();
+
+      const domNode = this.renderedComponent.update(nextRender);
 
       return domNode;
     } else {
