@@ -55,7 +55,7 @@ class DOMComponent {
   }
 
   update(element) {
-    this.element.props = element.props;
+    this.element = element;
 
     const oldDomNode = this.domNode;
     const root = document.createElement(this.element.type);
@@ -176,7 +176,6 @@ class ClassComponent {
   update(nextElement=null) {
     if(nextElement) {
       this.publicInstance.props = nextElement.props;
-      //this.element = nextElement;
     }
 
     const nextRender = this.publicInstance.render();
