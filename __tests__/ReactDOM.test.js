@@ -149,7 +149,7 @@ const renderingClassComponents = () => {
   });
 
   describe(
-    'rendering a class component that returns html', () => {
+    'returning html', () => {
 
     lazy('element', () => {
       return React.createElement(class extends React.Component {
@@ -281,7 +281,7 @@ const renderingClassComponents = () => {
   });
 
   describe(
-    'passing props to class components', () => {
+    'passing props', () => {
 
     lazy('id', () => 'some-id');
     lazy('element', () => {
@@ -310,6 +310,104 @@ const renderingClassComponents = () => {
 };
 
 const renderingFunctionalComponents = () => {
+  describe('updating', () => {
+    describe('when the child type does not match', () => {
+      lazy('oldComponent', () => {
+        return (props) => {
+          return props.children[0];
+        }
+      });
+      lazy('oldChild', () => {
+        return React.createElement('div', null, []);
+      });
+      lazy('newChild', () => {
+        return React.createElement('span', null, []);
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          React.createElement(
+            oldComponent, null, [oldChild]),
+          document.querySelector("#container"))
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          React.createElement(
+            oldComponent, null, [newChild]),
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><span></span></div>'
+        );
+      });
+    });
+
+    describe('when the type does match', () => {
+      lazy('oldComponent', () => {
+        return (props) => {
+          return React.createElement('div', null, props.children);
+        }
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          React.createElement(
+            oldComponent, null, ['test']),
+          document.querySelector("#container"))
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          React.createElement(
+            oldComponent, null, ['test2']),
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div>test2</div></div>'
+        );
+      });
+    });
+
+    describe('when the type does not match', () => {
+      lazy('oldComponent', () => {
+        return (props) => {
+          return React.createElement('div', null, [
+            'old-component'
+          ]);
+        }
+      });
+      lazy('newComponent', () => {
+        return (props) => {
+          return React.createElement('div', null, [
+            'new-component'
+          ]);
+        }
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          React.createElement(
+            oldComponent),
+          document.querySelector("#container"))
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          React.createElement(
+            newComponent),
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div>new-component</div></div>'
+        );
+      });
+    });
+  });
+
   describe(
     'rendering a functional component that returns html', () => {
 
@@ -515,9 +613,17 @@ const renderingHtmlElements = () => {
 
 describe('ReactDOM', () => {
   describe('render', () => {
-    renderingHtmlElements();
-    renderingFunctionalComponents();
-    renderingClassComponents();
+    describe('html elements', () => {
+      renderingHtmlElements();
+    });
+
+    describe('functional components', () => {
+      renderingFunctionalComponents();
+    });
+
+    describe('class components', () => {
+      renderingClassComponents();
+    });
   });
 });
 

@@ -67,7 +67,7 @@ yarn test:features
 * passing props & children
 * state change triggers DOM update
 * component update preserves class component instances
-* componentWillMount, componentDidMount, and componentWillUnmount lifecycle methods
+* componentWillMount, componentWillUpdate, and componentWillUnmount lifecycle methods
 
 #### TODO
 

@@ -54,7 +54,9 @@ class DOMComponent {
   unmount() {
   }
 
-  update() {
+  update(element) {
+    this.element.props = element.props;
+
     const oldDomNode = this.domNode;
     const root = document.createElement(this.element.type);
 
@@ -73,10 +75,10 @@ class DOMComponent {
       } else if(this.renderedElements[i].type 
          === this.element.props.children[j].type) {
 
-        this.renderedElements[i].props = 
-          this.element.props.children[j].props;
         this.appendHtml(
-          root, this.renderedComponents[i].update());
+          root, 
+          this.renderedComponents[i]
+            .update(this.element.props.children[j]));
       } else {
 //        const instance = instantiateComponent({
 //          element: this.element.props.children[j]
@@ -92,16 +94,6 @@ class DOMComponent {
     this.domNode = root;
 
     return root;
-  }
-
-  appendHtml(root, nodeOrString) {
-    if(Object.prototype.toString.call(nodeOrString) 
-      === '[object String]') {
-
-      root.innerHTML += nodeOrString;
-    } else {
-      root.appendChild(nodeOrString);
-    }
   }
 
   mount() {
@@ -126,6 +118,16 @@ class DOMComponent {
     this.domNode = root;
 
     return root;
+  }
+
+  appendHtml(root, nodeOrString) {
+    if(Object.prototype.toString.call(nodeOrString) 
+      === '[object String]') {
+
+      root.innerHTML += nodeOrString;
+    } else {
+      root.appendChild(nodeOrString);
+    }
   }
 }
 
@@ -178,9 +180,7 @@ class ClassComponent {
     const nextRender = this.publicInstance.render();
 
     if(this.renderedElement.type === nextRender.type) {
-      this.renderedComponent.element.props = 
-          nextRender.props;
-      const domNode = this.renderedComponent.update();
+      const domNode = this.renderedComponent.update(nextRender);
 
       this.publicInstance.componentWillUpdate();
 
@@ -209,13 +209,48 @@ class FunctionalComponent {
     this.renderedComponent;
   }
 
+  getHostNode() {
+    return this.renderedComponent.getHostNode();
+  }
+
+  unmount() {
+  }
+
+  update(element) {
+    this.element = element;
+    const nextRender = this.element.type(this.element.props);
+
+    if(this.renderedElement.type === nextRender.type) {
+      const domNode = this.renderedComponent.update(nextRender);
+
+      return domNode;
+    } else {
+      const prevNode = this.getHostNode();
+
+      this.renderedElement = nextRender;
+      this.renderedComponent = instantiateComponent({
+        element: this.renderedElement
+      });
+
+      const nextNode = this.renderedComponent.mount();
+
+      prevNode.parentNode.replaceChild(nextNode, prevNode);
+
+      return nextNode;
+    }
+  }
+
   mount() {
     this.renderedElement = this.element.type(this.element.props);
     this.renderedComponent = instantiateComponent({
       element: this.renderedElement
     });
 
-    return this.renderedComponent.mount();
+    const node = this.renderedComponent.mount();
+
+    this.getHostNode().__reactInternalInstance = this;
+  
+    return node;
   }
 }
 
