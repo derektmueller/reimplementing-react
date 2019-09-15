@@ -289,6 +289,33 @@ const renderingClassComponents = () => {
   });
 
   describe(
+    'returning a string', () => {
+
+    lazy('element', () => {
+      return React.createElement(class extends React.Component {
+        render() {
+          return 'some-content';
+        }
+      });
+    });
+
+    beforeEach(() => {
+      document.body.innerHTML = '<div id="container"></div>';
+    });
+
+    it('renders the element returned by the component', () => {
+      expect(
+        ReactDOM.render(
+          element, document.querySelector("#container")))
+        .toEqual(null);
+
+      expect(document.body.innerHTML).toEqual(
+        '<div id="container">some-content</div>'
+      );
+    });
+  });
+
+  describe(
     'returning html', () => {
 
     lazy('element', () => {
@@ -551,6 +578,140 @@ const renderingFunctionalComponents = () => {
 
 const renderingHtmlElements = () => {
   describe('updating', () => {
+    describe('removing a child', () => {
+      lazy('ChildClassComponent0', () => {
+        return class extends React.Component {
+          render() {
+            return 'old-content-0';
+          }
+        }
+      });
+      lazy('ChildClassComponent1', () => {
+        return class extends React.Component {
+          render() {
+            return 'old-content-1';
+          }
+        }
+      });
+      lazy('oldComponent', () => {
+        return React.createElement('div', null, [
+          React.createElement('div', null, [
+            React.createElement(ChildClassComponent0),
+            React.createElement(ChildClassComponent1),
+          ])
+        ]);
+      });
+      lazy('newComponent', () => {
+        return React.createElement('div', null, [
+          React.createElement('div', null, [
+            React.createElement(ChildClassComponent1),
+          ])
+        ]);
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          oldComponent,
+          document.querySelector("#container"))
+      });
+
+      it('unmounts the component that was removed', () => {
+        spyOn(ChildClassComponent0.prototype, 'componentWillUnmount');
+
+        ReactDOM.render(
+          newComponent,
+          document.querySelector("#container"));
+
+        expect(ChildClassComponent0.prototype.componentWillUnmount)
+          .toHaveBeenCalled();
+      });
+
+      it('updates the components that remain', () => {
+        spyOn(ChildClassComponent1.prototype, 'componentWillUpdate');
+
+        ReactDOM.render(
+          newComponent,
+          document.querySelector("#container"));
+
+        expect(ChildClassComponent1.prototype.componentWillUpdate)
+          .toHaveBeenCalled();
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          newComponent,
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div><div>old-content-1</div></div></div>'
+        );
+      });
+    });
+
+    describe('prepending a new child', () => {
+      lazy('ChildClassComponent0', () => {
+        return class extends React.Component {
+          render() {
+            return 'old-content';
+          }
+        }
+      });
+      lazy('ChildClassComponent1', () => {
+        return class extends React.Component {
+          render() {
+            return 'new-content';
+          }
+        }
+      });
+      lazy('oldComponent', () => {
+        return React.createElement('div', null, [
+          React.createElement('div', null, [
+            React.createElement(ChildClassComponent0)
+          ])
+        ]);
+      });
+      lazy('newComponent', () => {
+        return React.createElement('div', null, [
+          React.createElement('div', null, [
+            React.createElement(ChildClassComponent1),
+            React.createElement(ChildClassComponent0),
+          ])
+        ]);
+      });
+
+      beforeEach(() => {
+        document.body.innerHTML = '<div id="container"></div>';
+        ReactDOM.render(
+          oldComponent,
+          document.querySelector("#container"))
+      });
+
+      xit('mounts the new component', () => {
+      });
+
+      xit('updates the old components', () => {
+        spyOn(ChildClassComponent0.prototype, 'componentWillUpdate');
+
+        ReactDOM.render(
+          newComponent,
+          document.querySelector("#container"));
+
+        expect(ChildClassComponent0.prototype.componentWillUpdate)
+          .toHaveBeenCalled();
+      });
+
+      it('updates the DOM', () => {
+        ReactDOM.render(
+          newComponent,
+          document.querySelector("#container"));
+
+        expect(document.body.innerHTML).toEqual(
+          '<div id="container"><div><div>new-contentold-content</div></div></div>'
+        );
+      });
+    });
+
     describe('when the child type does match', () => {
       lazy('oldComponent', () => {
         return React.createElement('div', null, [

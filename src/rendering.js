@@ -29,9 +29,31 @@ function applyAttributes(node, props) {
   });
 }
 
+function appendHtml(root, nodeOrString) {
+  if(Object.prototype.toString.call(nodeOrString) 
+    === '[object String]') {
+
+    root.innerHTML += nodeOrString;
+  } else {
+    root.appendChild(nodeOrString);
+  }
+}
+
 class HTMLStringComponent {
   constructor(string) {
     this.string = string;
+  }
+
+  getHostNode() {
+    return {};
+  }
+
+  unmount() {
+  }
+
+  update(string) {
+    this.string = string;
+    return this.string;
   }
 
   mount() {
@@ -59,34 +81,40 @@ class DOMComponent {
 
     const oldDomNode = this.domNode;
     const root = document.createElement(this.element.type);
+    const nextRenderedElements = this.element.props.children;
+    const nextRenderedComponents = 
+      nextRenderedElements.map((child) => {
+        return instantiateComponent({
+          element: child
+        });
+      });
 
     applyAttributes(root, this.element.props);
     applyEventHandlers(root, this.element.props);
 
     let i = 0, 
         j = 0;
-    while(j < this.element.props.children.length &&
-          i < this.renderedElements.length) {
-      if(Object.prototype.toString.call(
-          this.element.props.children[j]) === '[object String]') {
+    while(j < nextRenderedComponents.length &&
+          i < this.renderedComponents.length) {
+      if(this.renderedElements[i].type 
+         === nextRenderedElements[j].type) {
 
-        this.appendHtml(
-          root, this.element.props.children[j]);
-      } else if(this.renderedElements[i].type 
-         === this.element.props.children[j].type) {
-
-        this.appendHtml(
+        appendHtml(
           root, 
           this.renderedComponents[i]
-            .update(this.element.props.children[j]));
+            .update(nextRenderedElements[j]));
+        i++;
+        j++;
       } else {
-        const instance = instantiateComponent({
-          element: this.element.props.children[j]
-        });
-        this.appendHtml(root, instance.mount());
+        this.renderedComponents[i].unmount();
+        i++;
       }
+    }
 
-      i++;
+    while(j < nextRenderedElements.length) {
+      appendHtml(
+        root, nextRenderedComponents[j].mount());
+
       j++;
     }
 
@@ -112,7 +140,7 @@ class DOMComponent {
 
     this.renderedComponents.forEach((component) => {
       const nodeOrString = component.mount();
-      this.appendHtml(root, nodeOrString);
+      appendHtml(root, nodeOrString);
     });
 
     this.domNode = root;
@@ -120,16 +148,6 @@ class DOMComponent {
     this.getHostNode().__reactInternalInstance = this;
 
     return root;
-  }
-
-  appendHtml(root, nodeOrString) {
-    if(Object.prototype.toString.call(nodeOrString) 
-      === '[object String]') {
-
-      root.innerHTML += nodeOrString;
-    } else {
-      root.appendChild(nodeOrString);
-    }
   }
 }
 
@@ -298,6 +316,6 @@ export function renderElement(element, container) {
     }).mount();
   }
 
-  container.appendChild(domNode);
+  appendHtml(container, domNode);
 }
 
